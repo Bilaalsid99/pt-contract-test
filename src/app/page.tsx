@@ -1,65 +1,152 @@
-import Image from "next/image";
+import { EmailCaptureForm } from "@/components/EmailCaptureForm";
 
-export default function Home() {
+export const metadata = {
+  title: "Personal Trainer Contract Template UK (Editable + Free via Email)",
+  description:
+    "Personal trainer contract template UK for 1-to-1 PT sessions. Covers fees, cancellations, liability and client responsibilities. Get the editable version by email.",
+};
+
+export default function Page() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen">
+      {/* Header */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-3xl px-6 py-5 flex items-center justify-between">
+          <a href="/" className="text-sm font-semibold tracking-wide text-slate-900">
+            PT Templates UK
+          </a>
+          <div className="text-sm text-slate-600">
+            Personal Trainer Contract Template
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-2xl px-6 py-12">
+        {/* Spec block */}
+        <div className="text-xs text-slate-500">
+          Keyword:{" "}
+          <span className="font-medium text-slate-700">
+            personal trainer contract template UK
+          </span>
+        </div>
+
+        {/* H1 */}
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">
+          Personal Trainer Contract Template UK
+        </h1>
+
+        <p className="mt-5 text-lg leading-relaxed text-slate-700">
+          Personal trainer contract template UK — use this to onboard clients clearly,
+          define session rules, protect your time, and reduce disputes around
+          payments and cancellations.
+        </p>
+
+        <div className="mt-6 text-sm text-slate-600 space-y-1">
+          <div>✓ Built for 1-to-1 PT sessions</div>
+          <div>✓ Plain-English structure</div>
+          <div>✓ England & Wales context</div>
+        </div>
+
+        {/* TOP CTA */}
+        <section className="mt-10 border border-slate-200 bg-white p-8">
+          <h2 className="text-base font-semibold text-slate-900">
+            Email the editable template
+          </h2>
+          <p className="mt-3 text-sm text-slate-600">
+            Get the Google Docs / Word version so you can edit placeholders.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+          <EmailCaptureForm />
+
+          <p className="mt-4 text-xs text-slate-500">
+            No spam. No urgency tricks. Just the template.
+          </p>
+        </section>
+
+        <hr className="my-12 border-slate-200" />
+
+        {/* What's included */}
+        <section>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+            What’s included
+          </h2>
+          <ul className="mt-6 list-disc pl-6 space-y-2 text-slate-700">
+            <li>Parties and services definition</li>
+            <li>Session structure (length, location, scheduling)</li>
+            <li>Fees and payment timing</li>
+            <li>Cancellation and no-show rules</li>
+            <li>Client responsibilities and disclosures</li>
+            <li>Liability + insurance reference</li>
+            <li>Termination</li>
+            <li>Governing law (England & Wales)</li>
+          </ul>
+        </section>
+
+        <hr className="my-12 border-slate-200" />
+
+        {/* How to use */}
+        <section>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+            How to use it
+          </h2>
+          <ol className="mt-6 list-decimal pl-6 space-y-2 text-slate-700">
+            <li>Copy into Google Docs or Word.</li>
+            <li>Replace placeholders (business name, fees, notice period).</li>
+            <li>Make cancellations/no-shows match your real policy.</li>
+            <li>Have the client sign before first paid session.</li>
+          </ol>
+        </section>
+
+        <hr className="my-12 border-slate-200" />
+
+        {/* FAQ */}
+        <section>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
+            FAQ
+          </h2>
+
+          <div className="mt-6 space-y-6 text-sm text-slate-600">
+            <div>
+              <div className="font-medium text-slate-900">
+                Is this legal advice?
+              </div>
+              <p className="mt-2">
+                No. It’s a practical template. For complex situations, get a solicitor review.
+              </p>
+            </div>
+
+            <div>
+              <div className="font-medium text-slate-900">
+                Can I use it for online coaching?
+              </div>
+              <p className="mt-2">
+                Yes. Adjust the services/delivery section for remote sessions.
+              </p>
+            </div>
+
+            <div>
+              <div className="font-medium text-slate-900">
+                Should I still use a PAR-Q?
+              </div>
+              <p className="mt-2">
+                Yes. A contract sets terms; a PAR-Q screens health readiness.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* BOTTOM CTA */}
+        <section className="mt-14 border border-slate-200 bg-white p-8">
+          <h2 className="text-base font-semibold text-slate-900">
+            Want the editable version?
+          </h2>
+          <p className="mt-3 text-sm text-slate-600">
+            Enter your email and we’ll send it.
+          </p>
+
+          <EmailCaptureForm />
+        </section>
+      </div>
+    </main>
   );
 }
