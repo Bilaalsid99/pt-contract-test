@@ -15,7 +15,8 @@ export async function POST(req: Request) {
 
     console.log("NEW_LEAD:", email);
 
-    if (!process.env.RESEND_API_KEY) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
       console.error("Resend env missing");
       return NextResponse.json({ success: false }, { status: 500 });
     }
@@ -26,19 +27,25 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false }, { status: 500 });
     }
 
-    // 1) Owner notification (unchanged, just slightly improved HTML)
+    // Use verified domain sender
+    const from =
+      process.env.LEADS_FROM_EMAIL || "PT Templates <owner@siddiqholdings.com>";
+    const notifyTo =
+      process.env.LEADS_NOTIFY_EMAIL || "owner@siddiqholdings.com";
+
+    // 1) Owner notification
     await resend.emails.send({
-      from: "PT Templates <onboarding@resend.dev>",
-      to: "owner@siddiqholdings.com",
+      from,
+      to: notifyTo,
       subject: "New PT Template Lead",
       html: `<p>New lead: <strong>${email}</strong></p><p>Template link: <a href="${templateUrl}">${templateUrl}</a></p>`,
     });
 
-    // 2) User delivery (NEW)
+    // 2) User delivery
     await resend.emails.send({
-      from: "PT Templates <onboarding@resend.dev>",
+      from,
       to: email,
-      replyTo: "owner@siddiqholdings.com",
+      replyTo: notifyTo,
       subject: "Your Personal Trainer Contract Template (UK)",
       text: `Hi,
 
