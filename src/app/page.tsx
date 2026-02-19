@@ -4,13 +4,17 @@ export const metadata = {
   title: "Personal Trainer Contract Template UK (Editable + Free via Email)",
   description:
     "Personal trainer contract template UK for 1-to-1 PT sessions. Covers fees, cancellations, liability and client responsibilities. Get the editable version by email.",
+  verification: {
+    google: "8gtyC-0Oe9BL_d3AaEZWbQdB0aP-jR6YVuWar_GTFf4",
+  },
 };
+
 
 export default function Page() {
   return (
     <main className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-slate-300 bg-white">
         <div className="mx-auto max-w-3xl px-6 py-5 flex items-center justify-between">
           <a
             href="/"
@@ -43,7 +47,7 @@ export default function Page() {
         </div>
 
         {/* Top CTA */}
-        <section className="mt-10 border border-slate-200 bg-white p-8">
+        <section className="mt-10 border border-slate-300 bg-white p-8">
           <h2 className="text-base font-semibold text-slate-900">
             Email the editable template
           </h2>
@@ -59,7 +63,7 @@ export default function Page() {
           </p>
         </section>
 
-        <hr className="my-12 border-slate-200" />
+        <hr className="my-12 border-slate-300" />
 
         {/* What’s included */}
         <section>
@@ -78,7 +82,7 @@ export default function Page() {
           </ul>
         </section>
 
-        <hr className="my-12 border-slate-200" />
+        <hr className="my-12 border-slate-300" />
 
         {/* How to use */}
         <section>
@@ -93,7 +97,7 @@ export default function Page() {
           </ol>
         </section>
 
-        <hr className="my-12 border-slate-200" />
+        <hr className="my-12 border-slate-300" />
 
         {/* FAQ */}
         <section>
@@ -136,7 +140,7 @@ export default function Page() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="mt-14 border border-slate-200 bg-white p-8">
+        <section className="mt-14 border border-slate-300 bg-white p-8">
           <h2 className="text-base font-semibold text-slate-900">
             Want the editable version?
           </h2>
