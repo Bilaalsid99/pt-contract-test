@@ -5,29 +5,89 @@ export const runtime = "nodejs";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+type TemplateId =
+  | "contract"
+  | "parq"
+  | "waiver"
+  | "terms"
+  | "client-agreement";
+
+const TEMPLATE_MAP: Record<
+  TemplateId,
+  { envKey: string; name: string; subject: string }
+> = {
+  contract: {
+    envKey: "TEMPLATE_FORCE_COPY_URL_CONTRACT",
+    name: "Personal Trainer Contract Template (UK)",
+    subject: "Your Personal Trainer Contract Template (UK)",
+  },
+  parq: {
+    envKey: "TEMPLATE_FORCE_COPY_URL_PARQ",
+    name: "Personal Trainer PAR-Q Form (UK)",
+    subject: "Your Personal Trainer PAR-Q Form (UK)",
+  },
+  waiver: {
+    envKey: "TEMPLATE_FORCE_COPY_URL_WAIVER",
+    name: "Personal Trainer Liability Waiver (UK)",
+    subject: "Your Personal Trainer Liability Waiver (UK)",
+  },
+  terms: {
+    envKey: "TEMPLATE_FORCE_COPY_URL_TERMS",
+    name: "Personal Trainer Terms & Conditions (UK)",
+    subject: "Your PT Terms & Conditions (UK)",
+  },
+  "client-agreement": {
+    envKey: "TEMPLATE_FORCE_COPY_URL_CLIENT_AGREEMENT",
+    name: "Personal Trainer Client Agreement (UK)",
+    subject: "Your Personal Trainer Client Agreement (UK)",
+  },
+};
+
 export async function POST(req: Request) {
   try {
-    const { email } = await req.json();
+    const { email, templateId } = (await req.json()) as {
+      email?: unknown;
+      templateId?: unknown;
+    };
 
     if (typeof email !== "string" || !email.includes("@")) {
-      return NextResponse.json({ success: false }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: "Invalid email" },
+        { status: 400 }
+      );
     }
 
-    console.log("NEW_LEAD:", email);
+    const id = String(templateId || "").trim() as TemplateId;
+    if (!id || !(id in TEMPLATE_MAP)) {
+      return NextResponse.json(
+        { success: false, error: "Invalid templateId" },
+        { status: 400 }
+      );
+    }
+
+    console.log("NEW_LEAD:", email, "TEMPLATE:", id);
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
       console.error("Resend env missing");
-      return NextResponse.json({ success: false }, { status: 500 });
+      return NextResponse.json(
+        { success: false, error: "Missing RESEND_API_KEY" },
+        { status: 500 }
+      );
     }
 
-    const templateUrl = process.env.TEMPLATE_FORCE_COPY_URL;
+    const cfg = TEMPLATE_MAP[id];
+    const templateUrl = process.env[cfg.envKey];
+
     if (!templateUrl) {
-      console.error("Missing TEMPLATE_FORCE_COPY_URL env");
-      return NextResponse.json({ success: false }, { status: 500 });
+      console.error(`Missing ${cfg.envKey} env`);
+      return NextResponse.json(
+        { success: false, error: `Missing ${cfg.envKey}` },
+        { status: 500 }
+      );
     }
 
-    // Use verified domain sender
+    // Use verified domain sender (your current setup)
     const from =
       process.env.LEADS_FROM_EMAIL || "PT Templates <owner@siddiqholdings.com>";
     const notifyTo =
@@ -37,8 +97,10 @@ export async function POST(req: Request) {
     await resend.emails.send({
       from,
       to: notifyTo,
-      subject: "New PT Template Lead",
-      html: `<p>New lead: <strong>${email}</strong></p><p>Template link: <a href="${templateUrl}">${templateUrl}</a></p>`,
+      subject: `New lead: ${cfg.name}`,
+      html: `<p>New lead: <strong>${email}</strong></p>
+             <p>Template: <strong>${cfg.name}</strong></p>
+             <p>Template link: <a href="${templateUrl}">${templateUrl}</a></p>`,
     });
 
     // 2) User delivery
@@ -46,10 +108,10 @@ export async function POST(req: Request) {
       from,
       to: email,
       replyTo: notifyTo,
-      subject: "Your Personal Trainer Contract Template (UK)",
+      subject: cfg.subject,
       text: `Hi,
 
-Your Personal Trainer Services Agreement (UK) template is ready.
+Your ${cfg.name} is ready.
 
 Create your private copy below:
 
@@ -61,12 +123,12 @@ More professional templates for UK personal trainers will be released soon.
 
 If you have any questions, simply reply to this email.
 
-— PT Contract Templates`,
+— PT Templates UK`,
       html: `
 <div style="font-family: Arial, sans-serif; line-height: 1.6; max-width: 520px; margin: 0 auto;">
   <h2 style="margin-bottom: 16px;">Your template is ready</h2>
 
-  <p>Your Personal Trainer Services Agreement (UK) template is ready to use.</p>
+  <p>Your ${cfg.name} is ready to use.</p>
 
   <p style="margin: 24px 0;">
     <a href="${templateUrl}"
@@ -91,7 +153,7 @@ If you have any questions, simply reply to this email.
   </p>
 
   <p style="margin-top: 24px; font-size: 14px; color: #777;">
-    — PT Contract Templates
+    — PT Templates UK
   </p>
 </div>`,
     });
@@ -99,6 +161,9 @@ If you have any questions, simply reply to this email.
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("SUBMIT_ERROR:", err);
-    return NextResponse.json({ success: false }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: "Server error" },
+      { status: 500 }
+    );
   }
 }

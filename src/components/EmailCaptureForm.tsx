@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 
-export function EmailCaptureForm() {
+export type TemplateId =
+  | "contract"
+  | "parq"
+  | "waiver"
+  | "terms"
+  | "client-agreement";
+
+type Props = {
+  templateId: TemplateId;
+  buttonText?: string;
+};
+
+export function EmailCaptureForm({ templateId, buttonText }: Props) {
   const [loading, setLoading] = useState(false);
 
   return (
@@ -15,23 +27,31 @@ export function EmailCaptureForm() {
         try {
           const form = e.currentTarget as HTMLFormElement;
           const formData = new FormData(form);
-          const email = formData.get("email");
+          const email = String(formData.get("email") ?? "").trim();
 
           const res = await fetch("/api/submit", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ email, templateId }),
           });
 
+          // Try to parse error message if your API returns JSON { error: "..." }
+          let data: any = null;
+          try {
+            data = await res.json();
+          } catch {}
+
           if (!res.ok) {
-            throw new Error("Request failed");
+            const msg =
+              data?.error ||
+              "Something went wrong. Please try again.";
+            throw new Error(msg);
           }
 
           alert("Thanks. We'll email you shortly.");
-
           form.reset();
-        } catch (error) {
-          alert("Something went wrong. Please try again.");
+        } catch (error: any) {
+          alert(error?.message || "Something went wrong. Please try again.");
         } finally {
           setLoading(false);
         }
@@ -50,7 +70,7 @@ export function EmailCaptureForm() {
         disabled={loading}
         className="bg-slate-900 px-6 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60"
       >
-        {loading ? "Sending..." : "Email me the template"}
+        {loading ? "Sending..." : buttonText ?? "Email me the template"}
       </button>
     </form>
   );

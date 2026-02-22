@@ -1,14 +1,17 @@
+// src/app/templates/personal-trainer-par-q-form-uk/page.tsx
+
 import { EmailCaptureForm } from "@/components/EmailCaptureForm";
 
 export const metadata = {
-  title: "Personal Trainer Contract Template UK (Editable + Free via Email)",
+  title: "Personal Trainer PAR-Q Form UK (Editable + Free via Email)",
   description:
-    "Personal trainer contract template UK for 1-to-1 PT sessions. Covers fees, cancellations, liability and client responsibilities. Get the editable version by email.",
-  verification: {
-    google: "8gtyC-0Oe9BL_d3AaEZWbQdB0aP-jR6YVuWar_GTFf4",
+    "Personal trainer PAR-Q form UK for client health screening before 1-to-1 sessions. Printable + editable template. Get the editable version by email.",
+  alternates: {
+    canonical: "/templates/personal-trainer-par-q-form-uk",
   },
 };
 
+export const dynamic = "force-static";
 
 export default function Page() {
   return (
@@ -22,41 +25,40 @@ export default function Page() {
           >
             PT Templates UK
           </a>
-          <div className="text-sm text-slate-600">
-            Personal Trainer Contract Template
-          </div>
+          <div className="text-sm text-slate-600">Health Screening Template</div>
         </div>
       </header>
 
       <div className="mx-auto max-w-2xl px-6 py-12">
         {/* H1 */}
         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">
-          Personal Trainer Contract Template UK
+          Personal Trainer PAR-Q Form UK
         </h1>
 
         <p className="mt-5 text-lg leading-relaxed text-slate-700">
-          Personal trainer contract template UK — use this to onboard clients
-          clearly, define session rules, protect your time, and reduce disputes
-          around payments and cancellations.
+          Use this to screen clients for medical
+          risk before starting 1-to-1 training sessions. It helps you capture
+          health disclosures clearly, spot red flags early, and document consent
+          in a professional way.
         </p>
 
         <div className="mt-6 text-sm text-slate-600 space-y-1">
-          <div>✓ Built for 1-to-1 PT sessions</div>
-          <div>✓ Plain-English structure</div>
-          <div>✓ England & Wales context</div>
+          <div>✓ Pre-exercise health screening format</div>
+          <div>✓ Suitable for UK self-employed PT onboarding</div>
+          <div>✓ Printable + editable version</div>
         </div>
 
         {/* Top CTA */}
         <section className="mt-10 border border-slate-300 bg-white p-8">
           <h2 className="text-base font-semibold text-slate-900">
-            Email the editable template
+            Email the editable PAR-Q form
           </h2>
           <p className="mt-3 text-sm text-slate-600">
-            Get the Google Docs / Word version so you can edit placeholders
-            (fees, notice periods, services).
+            Get the Google Docs / Word version so you can edit placeholders and
+            keep a clean copy for each client.
           </p>
 
-          <EmailCaptureForm templateId="contract" />
+          <EmailCaptureForm templateId="parq" />
 
           <p className="mt-4 text-xs text-slate-500">
             No spam. No urgency tricks. Just the template.
@@ -68,17 +70,15 @@ export default function Page() {
         {/* What’s included */}
         <section>
           <h2 className="text-2xl font-semibold tracking-tight text-slate-900">
-            What’s included
+            What this PAR-Q form includes
           </h2>
           <ul className="mt-6 list-disc pl-6 space-y-2 text-slate-700 leading-relaxed">
-            <li>Parties and services definition</li>
-            <li>Session structure (length, location, scheduling)</li>
-            <li>Fees and payment timing</li>
-            <li>Cancellation and no-show rules</li>
-            <li>Client responsibilities and disclosures</li>
-            <li>Liability + insurance reference (non-dramatic wording)</li>
-            <li>Termination</li>
-            <li>Governing law (England &amp; Wales)</li>
+            <li>Client personal details section</li>
+            <li>Health conditions checklist (clear yes/no)</li>
+            <li>Injury history disclosure</li>
+            <li>Medication declaration</li>
+            <li>Trigger wording for “seek GP clearance if needed”</li>
+            <li>Client declaration + signature/date section</li>
           </ul>
         </section>
 
@@ -90,10 +90,14 @@ export default function Page() {
             How to use it
           </h2>
           <ol className="mt-6 list-decimal pl-6 space-y-2 text-slate-700 leading-relaxed">
-            <li>Copy into Google Docs or Word.</li>
-            <li>Replace placeholders (business name, fees, notice period).</li>
-            <li>Make cancellations/no-shows match your real policy.</li>
-            <li>Have the client sign before the first paid session.</li>
+            <li>Send the form before the first paid session (or have it ready on arrival).</li>
+            <li>Ask the client to complete it honestly and in full.</li>
+            <li>Review answers together and clarify anything unclear.</li>
+            <li>
+              If any answers flag risk, pause and request appropriate clearance
+              before proceeding.
+            </li>
+            <li>Store a signed copy (digital or printed) with your onboarding docs.</li>
           </ol>
         </section>
 
@@ -108,32 +112,33 @@ export default function Page() {
           <div className="mt-6 space-y-6">
             <div>
               <div className="font-medium text-slate-900">
-                Is this legal advice?
+                Is this medical advice?
               </div>
               <p className="mt-2 text-sm text-slate-600">
-                No. It’s a practical template. For complex situations, get a
-                solicitor review.
+                No. It’s a screening template to help document health disclosures.
+                If something is flagged, use sensible next steps (e.g. clearance)
+                based on your process.
               </p>
             </div>
 
             <div>
               <div className="font-medium text-slate-900">
-                Can I use it for online coaching?
+                Should I use this with a contract and waiver?
               </div>
               <p className="mt-2 text-sm text-slate-600">
-                Yes. Adjust the services/delivery section for remote sessions
-                and boundaries.
+                Usually, yes. PAR-Q covers health screening; a contract covers
+                terms and cancellations; a waiver can cover informed risk and
+                limitations. Use only what matches your real onboarding.
               </p>
             </div>
 
             <div>
               <div className="font-medium text-slate-900">
-                Do I need other forms as well?
+                Can I print it?
               </div>
               <p className="mt-2 text-sm text-slate-600">
-                Often yes, depending on how you onboard clients. This contract
-                covers terms; add any additional paperwork only if it reflects
-                your real process.
+                Yes. The layout is designed to be printable and also easy to
+                fill digitally.
               </p>
             </div>
           </div>
@@ -142,13 +147,13 @@ export default function Page() {
         {/* Bottom CTA */}
         <section className="mt-14 border border-slate-300 bg-white p-8">
           <h2 className="text-base font-semibold text-slate-900">
-            Want the editable version?
+            Want the editable PAR-Q form?
           </h2>
           <p className="mt-3 text-sm text-slate-600">
             Enter your email and we’ll send it.
           </p>
 
-          <EmailCaptureForm templateId="contract" />
+          <EmailCaptureForm templateId="parq" />
         </section>
       </div>
     </main>
