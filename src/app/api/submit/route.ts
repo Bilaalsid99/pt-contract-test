@@ -119,7 +119,7 @@ ${templateUrl}
 
 This will generate an editable version in your own Google Drive.
 
-More professional templates for UK personal trainers will be released soon.
+Admin Pack (Get Paid Properly) — designed to protect your time, your clients, and your income. Coming soon.
 
 If you have any questions, simply reply to this email.
 
@@ -144,9 +144,8 @@ If you have any questions, simply reply to this email.
 
   <hr style="margin: 28px 0; border: none; border-top: 1px solid #eee;" />
 
-  <p style="font-size: 14px;">
-    We’re building a focused collection of professional documents designed specifically for UK personal trainers.
-  </p>
+ <p style="font-size: 14px;">
+  <strong>Admin Pack (Get Paid Properly)</strong> — designed to protect your time, your clients, and your income. Coming soon.
 
   <p style="margin-top: 20px; font-size: 14px;">
     If you have questions, simply reply to this email.
