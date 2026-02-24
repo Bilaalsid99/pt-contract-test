@@ -290,7 +290,7 @@ export default function Page() {
           <ul className="mt-3 space-y-2 text-sm">
             <li>
               <a
-                href="/templates/personal-trainer-par-q-template-uk"
+                href="/templates/personal-trainer-par-q-form-uk"
                 className="text-slate-900 underline underline-offset-4"
               >
                 PAR-Q Form Template UK
@@ -298,7 +298,7 @@ export default function Page() {
             </li>
             <li>
               <a
-                href="/templates/personal-trainer-waiver-template-uk"
+                href="/templates/personal-trainer-waiver-form-uk"
                 className="text-slate-900 underline underline-offset-4"
               >
                 Personal Trainer Waiver Template UK
@@ -306,7 +306,7 @@ export default function Page() {
             </li>
             <li>
               <a
-                href="/templates/personal-trainer-terms-and-conditions-template-uk"
+                href="/templates/personal-trainer-terms-and-conditions-uk"
                 className="text-slate-900 underline underline-offset-4"
               >
                 Personal Trainer Terms and Conditions Template UK

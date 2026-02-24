@@ -316,7 +316,7 @@ export default function Page() {
             </li>
             <li>
               <a
-                href="/templates/personal-trainer-waiver-template-uk"
+                href="/templates/personal-trainer-waiver-form-uk"
                 className="text-slate-900 underline underline-offset-4"
               >
                 Personal Trainer Waiver Template UK
@@ -324,7 +324,7 @@ export default function Page() {
             </li>
             <li>
               <a
-                href="/templates/personal-trainer-terms-and-conditions-template-uk"
+                href="/templates/personal-trainer-terms-and-conditions-uk"
                 className="text-slate-900 underline underline-offset-4"
               >
                 Personal Trainer Terms and Conditions Template UK
