@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 emails.txt
+
+.vercel
+.env*.local
