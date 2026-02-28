@@ -15,18 +15,20 @@ export type AgreementAnswers = {
   cancellationNoticeHours: number;
 };
 
+
 export type DraftRecord = {
   id: string;
-  status: DraftStatus;
-
+  status: "draft" | "locked" | "fulfilled";
   createdAt: number;
   updatedAt: number;
 
   answers: AgreementAnswers;
-
-  assembledHash: string;
   html: string;
+  assembledHash: string;
 
+  lockedAt?: number;
+  lockExpiresAt?: number;
   stripeSessionId?: string;
+
   fulfilledAt?: number;
 };

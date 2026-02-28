@@ -1,49 +1,43 @@
 // src/app/api/checkout/route.ts
 import { NextResponse } from "next/server";
+import { assertDraftId } from "@/lib/storage/draftId";
+import { rateLimitOrThrow } from "@/lib/storage/rateLimit";
 import { createCheckoutSession } from "@/lib/stripe/checkout";
-import { idTrace } from "@/lib/idtrace";
+import { lockDraft } from "@/lib/storage/drafts";
 
 export async function POST(req: Request) {
   try {
-    const body = (await req.json()) as unknown;
+    const body: unknown = await req.json();
 
-    const draftId =
+    const draftIdRaw =
       typeof body === "object" && body !== null && "draftId" in body
-        ? String((body as any).draftId || "")
+        ? (body as Record<string, unknown>).draftId
         : "";
 
-    idTrace("checkout:body.draftId_extracted", draftId);
+    const draftId = assertDraftId(draftIdRaw);
 
-    if (!draftId) {
-      return NextResponse.json({ error: "Missing draftId" }, { status: 400 });
-    }
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "unknown";
 
-    const origin =
-      req.headers.get("origin") ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : "http://localhost:3000");
-
-    const encoded = encodeURIComponent(draftId);
-    idTrace("checkout:encodedURIComponent(draftId)", encoded);
-
-    const successUrl = `${origin}/client-onboarding-pack/success?draftId=${encoded}`;
-    const cancelUrl = `${origin}/client-onboarding-pack/preview?draftId=${encoded}`;
-
-    console.log("[IDTRACE] checkout:successUrl", successUrl);
-    console.log("[IDTRACE] checkout:cancelUrl", cancelUrl);
-
-    const session = await createCheckoutSession({
-      draftId,
-      successUrl,
-      cancelUrl,
+    await rateLimitOrThrow({
+      bucket: "checkout-create",
+      ip,
+      limit: 20,
+      windowSeconds: 60,
     });
 
-    console.log("[IDTRACE] checkout:stripe_session_id", session.id);
+    const session = await createCheckoutSession({ draftId, req });
 
-    return NextResponse.json({ url: session.url });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Checkout failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    await lockDraft({ draftId, stripeSessionId: session.id });
+
+    return NextResponse.json({ url: session.url }, { status: 200 });
+  } catch (err: unknown) {
+    const e = err as { message?: string; status?: number };
+    return NextResponse.json(
+      { error: e?.message ?? "Server error" },
+      { status: e?.status ?? 500 }
+    );
   }
 }
