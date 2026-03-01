@@ -32,8 +32,6 @@ export async function deliverAgreement(draftIdRaw: string) {
 
     const to = draft.answers.trainerEmail;
 
-    console.log("deliver:starting", { draftId, to });
-
     const pdf = await htmlToPdfBuffer(draft.html);
 
     await sendAgreementEmail({
@@ -41,8 +39,7 @@ export async function deliverAgreement(draftIdRaw: string) {
       pdfBuffer: pdf,
       filename: "client-onboarding-pack.pdf",
     });
-
-    console.log("deliver:sent", { draftId, to });
+    
 
     // Mark delivered only after success
     await kv.set(deliveredKey, "1", { ex: 60 * 60 * 24 * 30 }); // 30 days

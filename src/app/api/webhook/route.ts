@@ -88,7 +88,7 @@ export async function POST(req: Request) {
     await markFulfilled({ draftId, stripeSessionId: sessionId });
 
     // ✅ Deliver PDF + email (idempotent inside deliverAgreement)
-    console.log("webhook:about_to_deliver", { draftId, sessionId });
+
     const { deliverAgreement } = await import("@/lib/fulfillment/deliverAgreement");
     await deliverAgreement(draftId);
 
