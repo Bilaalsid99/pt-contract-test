@@ -8,6 +8,10 @@ const TTL_SECONDS = 60 * 60 * 24 * 30; // 30 days
 const LOCK_TTL_SECONDS = 15 * 60; // 15 minutes (enough for checkout)
 const now = () => Date.now();
 
+function newToken() {
+  return crypto.randomUUID();
+}
+
 export async function createDraft(input: {
   answers: AgreementAnswers;
   html: string;
@@ -38,9 +42,94 @@ export async function getDraft(draftId: string): Promise<DraftRecord | null> {
 }
 
 /**
- * Lock draft before checkout is considered valid.
+ * Reserve the checkout lock BEFORE creating a Stripe session.
+ * This prevents creating a payable session that cannot be associated to the draft.
+ */
+export async function reserveDraftCheckoutLock(
+  draftIdRaw: string
+): Promise<{ draftId: string; token: string }> {
+  const draftId = assertDraftId(draftIdRaw);
+
+  const record = await getDraft(draftId);
+  if (!record) throw new Error("Draft not found");
+
+  if (record.status === "fulfilled") throw new Error("Draft already fulfilled");
+  if (record.status === "locked") throw new Error("Draft already locked");
+
+  const lockKey = kvKeys.draftLock(draftId);
+  const token = newToken();
+
+  const acquired = await (kv as any).set(lockKey, token, {
+    nx: true,
+    ex: LOCK_TTL_SECONDS,
+  });
+
+  if (!acquired) throw new Error("Draft lock busy");
+
+  return { draftId, token };
+}
+
+/**
+ * Finalize lock AFTER Stripe session is created.
+ * Only succeeds if the reservation token still owns the lock.
+ */
+export async function finalizeDraftCheckoutLock(params: {
+  draftId: string;
+  token: string;
+  stripeSessionId: string;
+}): Promise<DraftRecord> {
+  const draftId = assertDraftId(params.draftId);
+  const token = String(params.token || "");
+  const stripeSessionId = String(params.stripeSessionId || "");
+
+  if (!token) throw new Error("Missing reservation token");
+  if (!stripeSessionId) throw new Error("Missing stripeSessionId");
+
+  const lockKey = kvKeys.draftLock(draftId);
+  const currentLock = (await kv.get(lockKey)) as string | null;
+
+  if (!currentLock) throw new Error("Draft lock expired");
+  if (currentLock !== token) throw new Error("Draft lock not owned");
+
+  const record = await getDraft(draftId);
+  if (!record) throw new Error("Draft not found");
+
+  if (record.status === "fulfilled") throw new Error("Draft already fulfilled");
+
+  // If already locked, allow only idempotency with same session id
+  if (record.status === "locked") {
+    if (record.stripeSessionId && record.stripeSessionId !== stripeSessionId) {
+      throw new Error("Draft already locked with a different session");
+    }
+    return record;
+  }
+
+  if (record.status !== "draft") {
+    throw new Error(`Cannot lock draft in status: ${record.status}`);
+  }
+
+  const ts = now();
+  const updated: DraftRecord = {
+    ...record,
+    status: "locked",
+    stripeSessionId,
+    lockedAt: ts,
+    lockExpiresAt: ts + LOCK_TTL_SECONDS * 1000,
+    updatedAt: ts,
+  };
+
+  await kv.set(kvKeys.draft(draftId), updated, { ex: TTL_SECONDS });
+
+  // Replace the reservation token with the session id for observability (keep TTL).
+  await kv.set(lockKey, stripeSessionId, { ex: LOCK_TTL_SECONDS });
+
+  return updated;
+}
+
+/**
+ * Lock draft when you already have a Stripe session id.
  * - Uses a separate lock key with NX + TTL to prevent concurrent locking.
- * - Still idempotent: if already locked with same session, returns record.
+ * - Idempotent: if already locked with same session, returns record.
  */
 export async function lockDraft(params: {
   draftId: string;
@@ -70,17 +159,14 @@ export async function lockDraft(params: {
     throw new Error(`Cannot lock draft in status: ${record.status}`);
   }
 
-  // Acquire lock (best-effort atomic). If another request already locked, reject.
   const lockKey = kvKeys.draftLock(draftId);
 
-  // @vercel/kv supports Redis options. Using `as any` avoids TS friction.
   const acquired = await (kv as any).set(lockKey, stripeSessionId, {
     nx: true,
     ex: LOCK_TTL_SECONDS,
   });
 
   if (!acquired) {
-    // Someone else is currently locking/creating checkout.
     throw new Error("Draft lock busy");
   }
 
@@ -99,11 +185,17 @@ export async function lockDraft(params: {
 }
 
 /**
- * Mark fulfilled (idempotent).
- * Must be locked first.
+ * Mark fulfilled (idempotent, session-bound).
+ * Must be locked first, and session must match.
  */
-export async function markFulfilled(draftIdRaw: string): Promise<DraftRecord> {
-  const draftId = assertDraftId(draftIdRaw);
+export async function markFulfilled(params: {
+  draftId: string;
+  stripeSessionId: string;
+}): Promise<DraftRecord> {
+  const draftId = assertDraftId(params.draftId);
+  const stripeSessionId = String(params.stripeSessionId || "");
+  if (!stripeSessionId) throw new Error("Missing stripeSessionId");
+
   const record = await getDraft(draftId);
   if (!record) throw new Error("Draft not found");
 
@@ -112,6 +204,10 @@ export async function markFulfilled(draftIdRaw: string): Promise<DraftRecord> {
 
   if (record.status !== "locked") {
     throw new Error(`Cannot fulfill draft in status: ${record.status}`);
+  }
+
+  if (!record.stripeSessionId || record.stripeSessionId !== stripeSessionId) {
+    throw new Error("Draft locked with a different session");
   }
 
   const ts = now();

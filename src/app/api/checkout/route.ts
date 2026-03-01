@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 import { assertDraftId } from "@/lib/storage/draftId";
 import { rateLimitOrThrow } from "@/lib/storage/rateLimit";
 import { createCheckoutSession } from "@/lib/stripe/checkout";
-import { lockDraft } from "@/lib/storage/drafts";
+import {
+  reserveDraftCheckoutLock,
+  finalizeDraftCheckoutLock,
+} from "@/lib/storage/drafts";
 
 export async function POST(req: Request) {
   try {
@@ -28,9 +31,17 @@ export async function POST(req: Request) {
       windowSeconds: 60,
     });
 
+    // ✅ Reserve lock BEFORE creating a payable Stripe session
+    const { token } = await reserveDraftCheckoutLock(draftId);
+
     const session = await createCheckoutSession({ draftId, req });
 
-    await lockDraft({ draftId, stripeSessionId: session.id });
+    // ✅ Finalize lock AFTER session exists (session-bound)
+    await finalizeDraftCheckoutLock({
+      draftId,
+      token,
+      stripeSessionId: session.id,
+    });
 
     return NextResponse.json({ url: session.url }, { status: 200 });
   } catch (err: unknown) {
