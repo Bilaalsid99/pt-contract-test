@@ -3,8 +3,20 @@ import { Buffer } from "buffer";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
-// @ts-expect-error
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+// Vercel/bundlers can expose vfs_fonts in different shapes.
+// Support both:
+//   - pdfFonts.pdfMake.vfs
+//   - pdfFonts.vfs
+const vfs =
+  (pdfFonts as any).pdfMake?.vfs ??
+  (pdfFonts as any).vfs;
+
+if (!vfs) {
+  throw new Error("pdfmake fonts (vfs) not available");
+}
+
+// Attach fonts to pdfmake
+(pdfMake as any).vfs = vfs;
 
 /**
  * Serverless-safe PDF generator.
@@ -17,7 +29,6 @@ export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
   }
 
   // Very simple "HTML-ish" cleanup so tags don't look insane.
-  // (You can remove this if your input is already plain text.)
   const text = input
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/p>/gi, "\n\n")
@@ -36,7 +47,8 @@ export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
     defaultStyle: { font: "Roboto" },
   };
 
-  const pdfDoc = pdfMake.createPdf(docDefinition);
-  const uint8 = await pdfDoc.getBuffer();
+  const pdfDoc = (pdfMake as any).createPdf(docDefinition);
+  const uint8: Uint8Array = await pdfDoc.getBuffer();
+
   return Buffer.from(uint8);
 }
