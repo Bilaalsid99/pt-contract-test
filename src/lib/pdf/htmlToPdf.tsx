@@ -1,11 +1,17 @@
-// src/lib/pdf/htmlToPdf.ts
-import { Buffer } from "buffer";
+// src/lib/pdf/htmlToPdf.tsx
+
 import React from "react";
-import { Document, Page, Text, StyleSheet, pdf } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  StyleSheet,
+  renderToBuffer,
+} from "@react-pdf/renderer";
 
 /**
  * Strip basic HTML into readable text.
- * This keeps it simple and serverless-safe.
+ * Keeps things deterministic and serverless-safe.
  */
 function stripHtmlToText(input: string) {
   return input
@@ -35,14 +41,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
-  if (!input || typeof input !== "string") {
-    throw new Error("Missing html");
-  }
-
-  const text = stripHtmlToText(input);
-
-  const doc = (
+function AgreementDocument({ text }: { text: string }) {
+  return (
     <Document>
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>Client Onboarding Pack</Text>
@@ -50,23 +50,21 @@ export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
       </Page>
     </Document>
   );
-
-const instance = pdf(doc);
-const out = await instance.toBuffer();
-
-if (Buffer.isBuffer(out)) return out;
-
-if (out instanceof Uint8Array) {
-  return Buffer.from(out);
 }
 
-if (out instanceof ArrayBuffer) {
-  return Buffer.from(new Uint8Array(out));
-}
+export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
+  if (!input || typeof input !== "string") {
+    throw new Error("Missing html");
+  }
 
-if ((out as any)?.buffer instanceof ArrayBuffer) {
-  return Buffer.from(new Uint8Array((out as any).buffer));
-}
+  const text = stripHtmlToText(input);
 
-throw new Error("Unexpected PDF buffer type");
+  const pdfBytes = await renderToBuffer(
+    <AgreementDocument text={text} />
+  );
+
+  // renderToBuffer may return Uint8Array in serverless
+  if (Buffer.isBuffer(pdfBytes)) return pdfBytes;
+
+  return Buffer.from(pdfBytes);
 }
