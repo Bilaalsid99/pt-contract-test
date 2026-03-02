@@ -10,8 +10,6 @@
   },
   "dependencies": {
     "@vercel/kv": "^3.0.0",
-    "html-to-pdfmake": "^2.5.32",
-    "jsdom": "^28.1.0",
     "next": "16.1.6",
     "pdfmake": "^0.3.5",
     "react": "19.2.3",

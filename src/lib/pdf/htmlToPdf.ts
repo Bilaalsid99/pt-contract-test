@@ -1,40 +1,42 @@
 // src/lib/pdf/htmlToPdf.ts
-
 import { Buffer } from "buffer";
-import { JSDOM } from "jsdom";
-import htmlToPdfmake from "html-to-pdfmake";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 
 // @ts-expect-error
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
-export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
-  if (!html || typeof html !== "string") {
+/**
+ * Serverless-safe PDF generator.
+ * NOTE: This no longer renders HTML. It expects plain text.
+ * If you pass HTML, it will be treated as text (tags will show).
+ */
+export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
+  if (!input || typeof input !== "string") {
     throw new Error("Missing html");
   }
 
-  const dom = new JSDOM(`<!doctype html><html><body></body></html>`);
-  const { window } = dom;
-
-  const content = htmlToPdfmake(html, { window });
+  // Very simple "HTML-ish" cleanup so tags don't look insane.
+  // (You can remove this if your input is already plain text.)
+  const text = input
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<li>/gi, "• ")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 
   const docDefinition: any = {
     info: { title: "Client Onboarding Pack" },
     pageSize: "A4",
     pageMargins: [40, 50, 40, 50],
-    content: Array.isArray(content) ? content : [content],
-    defaultStyle: {
-      font: "Roboto",
-      fontSize: 11,
-      lineHeight: 1.2,
-    },
+    content: [{ text, fontSize: 11, lineHeight: 1.2 }],
+    defaultStyle: { font: "Roboto" },
   };
 
   const pdfDoc = pdfMake.createPdf(docDefinition);
-
-  // pdfmake 0.3.x returns a Promise
   const uint8 = await pdfDoc.getBuffer();
-
   return Buffer.from(uint8);
 }
