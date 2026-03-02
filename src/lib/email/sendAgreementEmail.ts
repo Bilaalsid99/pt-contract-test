@@ -1,7 +1,7 @@
 // src/lib/email/sendAgreementEmail.ts
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(mustEnv("RESEND_API_KEY"));
 
 function mustEnv(name: string) {
   const v = process.env[name];

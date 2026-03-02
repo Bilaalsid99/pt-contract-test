@@ -3,16 +3,25 @@
 import { useEffect, useState } from "react";
 
 type ApiResp =
-  | { status: "not_found" }
-  | { status: "draft" | "locked" | "fulfilled"; draftId: string; fulfilledAt: number | null };
+  | { status: "not_found"; delivered: boolean }
+  | {
+      status: "draft" | "locked" | "fulfilled";
+      delivered: boolean;
+      draftId: string;
+      fulfilledAt: number | null;
+    };
 
 export default function StatusPoller({ draftId }: { draftId: string }) {
-  const [status, setStatus] = useState<string>("loading");
+  const [status, setStatus] = useState<
+    "loading" | "error" | "not_found" | "draft" | "locked" | "fulfilled"
+  >("loading");
+  const [delivered, setDelivered] = useState<boolean>(false);
   const [attempts, setAttempts] = useState<number>(0);
 
   useEffect(() => {
     let alive = true;
     let t: ReturnType<typeof setTimeout> | null = null;
+    let localAttempts = 0;
 
     async function tick() {
       try {
@@ -24,24 +33,29 @@ export default function StatusPoller({ draftId }: { draftId: string }) {
 
         if (!alive) return;
 
-        setAttempts((a) => a + 1);
+        localAttempts += 1;
+        setAttempts(localAttempts);
 
         if (data.status === "not_found") {
           setStatus("not_found");
+          setDelivered(false);
           return;
         }
 
         setStatus(data.status);
+        setDelivered(Boolean((data as any).delivered));
 
-        if (data.status === "fulfilled") return;
+        // Stop polling only once delivery is confirmed
+        if (data.status === "fulfilled" && (data as any).delivered) return;
       } catch {
         if (!alive) return;
-        setAttempts((a) => a + 1);
+        localAttempts += 1;
+        setAttempts(localAttempts);
         setStatus("error");
       }
 
       // Try for ~60 seconds (30 * 2s)
-      if (attempts >= 30) return;
+      if (localAttempts >= 30) return;
 
       t = setTimeout(tick, 2000);
     }
@@ -52,7 +66,6 @@ export default function StatusPoller({ draftId }: { draftId: string }) {
       alive = false;
       if (t) clearTimeout(t);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId]);
 
   if (status === "loading") return <p>Checking payment status…</p>;
@@ -61,7 +74,10 @@ export default function StatusPoller({ draftId }: { draftId: string }) {
   if (status === "not_found") return <p>Draft not found.</p>;
 
   if (status === "fulfilled") {
-    return <p>Your agreement is confirmed. (PDF/email next step)</p>;
+    if (!delivered) {
+      return <p>Payment confirmed — generating and emailing your PDF now…</p>;
+    }
+    return <p>All done — your PDF has been emailed to you.</p>;
   }
 
   return <p>Processing payment… this can take a few seconds.</p>;
