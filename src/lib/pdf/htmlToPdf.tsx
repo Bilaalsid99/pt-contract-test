@@ -5,10 +5,11 @@ import {
   Document,
   Page,
   Text,
-  View,
   StyleSheet,
   renderToBuffer,
 } from "@react-pdf/renderer";
+
+export const runtime = "nodejs";
 
 function cleanHtml(input: string) {
   return input
@@ -17,34 +18,56 @@ function cleanHtml(input: string) {
     .trim();
 }
 
-function extractBlocks(html: string): { type: string; content: string }[] {
-  const blocks: { type: string; content: string }[] = [];
+function decodeEntities(s: string) {
+  return s
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
 
+function stripInlineTags(s: string) {
+  // removes <strong>, <em>, <span>, etc. Keeps their text.
+  return s.replace(/<[^>]+>/g, "");
+}
+
+type Block =
+  | { type: "heading"; level: number; content: string }
+  | { type: "paragraph"; content: string }
+  | { type: "bullet"; content: string };
+
+function extractBlocks(html: string): Block[] {
   const cleaned = cleanHtml(html);
+  const blocks: Block[] = [];
 
-  // Headings
-  const headingRegex = /<(h[1-6])[^>]*>(.*?)<\/\1>/gi;
-  let match;
-  while ((match = headingRegex.exec(cleaned))) {
-    blocks.push({ type: "heading", content: match[2] });
+  // capture h1-h6, p, li IN ORDER
+  const re = /<(h[1-6]|p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(cleaned))) {
+    const tag = m[1].toLowerCase();
+    const raw = decodeEntities(stripInlineTags(m[2])).trim();
+    if (!raw) continue;
+
+    if (tag.startsWith("h")) {
+      const level = Number(tag.slice(1));
+      blocks.push({ type: "heading", level, content: raw });
+    } else if (tag === "li") {
+      blocks.push({ type: "bullet", content: raw });
+    } else {
+      blocks.push({ type: "paragraph", content: raw });
+    }
   }
 
-  // List items
-  const listRegex = /<li[^>]*>(.*?)<\/li>/gi;
-  while ((match = listRegex.exec(cleaned))) {
-    blocks.push({ type: "bullet", content: match[1] });
+  // Fallback: if template doesn't use p/li/h tags much, at least dump text
+  if (blocks.length === 0) {
+    const plain = decodeEntities(stripInlineTags(cleaned))
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    if (plain) blocks.push({ type: "paragraph", content: plain });
   }
 
-  // Paragraphs
-  const paragraphRegex = /<p[^>]*>(.*?)<\/p>/gi;
-  while ((match = paragraphRegex.exec(cleaned))) {
-    blocks.push({ type: "paragraph", content: match[1] });
-  }
-
-  return blocks.map((b) => ({
-    type: b.type,
-    content: b.content.replace(/<[^>]+>/g, "").trim(),
-  }));
+  return blocks;
 }
 
 const styles = StyleSheet.create({
@@ -58,19 +81,25 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: 700,
-    marginBottom: 18,
+    marginBottom: 12,
   },
-  heading: {
+  heading1: {
     fontSize: 13,
     fontWeight: 700,
     marginTop: 14,
     marginBottom: 6,
   },
+  heading2: {
+    fontSize: 12,
+    fontWeight: 700,
+    marginTop: 10,
+    marginBottom: 4,
+  },
   paragraph: {
     marginBottom: 8,
   },
   bullet: {
-    marginLeft: 12,
+    marginLeft: 14,
     marginBottom: 4,
   },
 });
@@ -83,26 +112,27 @@ function AgreementDocument({ html }: { html: string }) {
       <Page size="A4" style={styles.page}>
         <Text style={styles.title}>Client Onboarding Pack</Text>
 
-        {blocks.map((block, i) => {
-          if (block.type === "heading") {
+        {blocks.map((b, i) => {
+          if (b.type === "heading") {
+            const style = b.level <= 2 ? styles.heading1 : styles.heading2;
             return (
-              <Text key={i} style={styles.heading}>
-                {block.content}
+              <Text key={i} style={style}>
+                {b.content}
               </Text>
             );
           }
 
-          if (block.type === "bullet") {
+          if (b.type === "bullet") {
             return (
               <Text key={i} style={styles.bullet}>
-                • {block.content}
+                • {b.content}
               </Text>
             );
           }
 
           return (
             <Text key={i} style={styles.paragraph}>
-              {block.content}
+              {b.content}
             </Text>
           );
         })}
@@ -116,11 +146,8 @@ export async function htmlToPdfBuffer(input: string): Promise<Buffer> {
     throw new Error("Missing html");
   }
 
-  const pdfBytes = await renderToBuffer(
-    <AgreementDocument html={input} />
-  );
+  const pdfBytes = await renderToBuffer(<AgreementDocument html={input} />);
 
   if (Buffer.isBuffer(pdfBytes)) return pdfBytes;
-
   return Buffer.from(pdfBytes);
 }
