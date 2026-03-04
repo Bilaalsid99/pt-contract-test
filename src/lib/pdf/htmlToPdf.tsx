@@ -35,7 +35,6 @@ function stripInlineTags(s: string) {
 }
 
 type Block =
-  | { type: "title"; content: string }
   | { type: "heading"; level: number; content: string }
   | { type: "paragraph"; content: string }
   | { type: "bullet"; content: string }
@@ -70,7 +69,7 @@ function extractBlocks(html: string): Block[] {
     }
   }
 
-  // Fallback
+  // Fallback: dump plain text
   if (blocks.length === 0) {
     const plain = decodeEntities(stripInlineTags(cleaned))
       .replace(/\n{3,}/g, "\n\n")
@@ -78,7 +77,7 @@ function extractBlocks(html: string): Block[] {
     if (plain) blocks.push({ type: "paragraph", content: plain });
   }
 
-  // Heuristic: convert everything after a "Signatures" heading into a signature block
+  // Convert everything after a "Signatures" heading into a signature block
   // This prevents splitting and lets us format it properly.
   const sigIdx = blocks.findIndex(
     (b) => b.type === "heading" && /signatures/i.test(b.content)
@@ -92,7 +91,6 @@ function extractBlocks(html: string): Block[] {
     for (const b of after) {
       if (b.type === "paragraph") sigLines.push(b.content);
       if (b.type === "bullet") sigLines.push(`• ${b.content}`);
-      // ignore other headings after signatures (rare), but you could include if needed
     }
 
     return [...before, { type: "signature", lines: sigLines }];
@@ -109,11 +107,15 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 1.45,
   },
+
+  // Document title
   packTitle: {
     fontSize: 16,
     fontWeight: 700,
     marginBottom: 10,
   },
+
+  // Headings
   heading1: {
     fontSize: 13,
     fontWeight: 700,
@@ -126,6 +128,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 4,
   },
+
+  // Body
   paragraph: {
     marginBottom: 8,
   },
@@ -164,8 +168,6 @@ const styles = StyleSheet.create({
 });
 
 function splitSignatureColumns(lines: string[]) {
-  // Very lightweight heuristic:
-  // If content contains "Trainer" and "Client", split around "Client" section.
   const trainerStart = lines.findIndex((l) => /^trainer\b/i.test(l));
   const clientStart = lines.findIndex((l) => /^client\b/i.test(l));
 
@@ -173,8 +175,12 @@ function splitSignatureColumns(lines: string[]) {
     return { left: lines, right: [] };
   }
 
-  const left = lines.slice(trainerStart, clientStart);
-  const right = lines.slice(clientStart);
+  let left = lines.slice(trainerStart, clientStart);
+  let right = lines.slice(clientStart);
+
+  // Remove duplicated header words from content lines
+  if (left.length && /^trainer\b/i.test(left[0])) left = left.slice(1);
+  if (right.length && /^client\b/i.test(right[0])) right = right.slice(1);
 
   return { left, right };
 }
@@ -208,44 +214,47 @@ function AgreementDocument({ html }: { html: string }) {
           if (b.type === "signature") {
             const { left, right } = splitSignatureColumns(b.lines);
 
-            // IMPORTANT: wrap={false} prevents splitting this block across pages.
-            // If it doesn't fit, it will move to the next page.
+            // wrap={false} prevents splitting this block across pages.
+            // If it doesn't fit, it moves to the next page.
             return (
               <View key={i} style={styles.signatureBlock} wrap={false}>
                 <View style={styles.sigRow}>
                   <View style={styles.sigCol}>
-                    {left.length > 0 && (
-                      <Text style={styles.sigLabel}>Trainer</Text>
-                    )}
-                    {left.map((l, idx) => (
-                      <Text key={idx} style={styles.sigLine}>
-                        {l}
-                      </Text>
-                    ))}
-                    {/* fallback blanks if not present */}
-                    {left.length === 0 && (
+                    <Text style={styles.sigLabel}>Trainer</Text>
+                    {left.length > 0 ? (
+                      left.map((l, idx) => (
+                        <Text key={idx} style={styles.sigLine}>
+                          {l}
+                        </Text>
+                      ))
+                    ) : (
                       <>
-                        <Text style={styles.sigLabel}>Trainer</Text>
-                        <Text style={styles.sigBlank}>Signature: ______________________</Text>
-                        <Text style={styles.sigBlank}>Date: __________________________</Text>
+                        <Text style={styles.sigBlank}>
+                          Signature: ______________________
+                        </Text>
+                        <Text style={styles.sigBlank}>
+                          Date: __________________________
+                        </Text>
                       </>
                     )}
                   </View>
 
                   <View style={styles.sigCol}>
-                    {right.length > 0 && (
-                      <Text style={styles.sigLabel}>Client</Text>
-                    )}
-                    {right.map((l, idx) => (
-                      <Text key={idx} style={styles.sigLine}>
-                        {l}
-                      </Text>
-                    ))}
-                    {right.length === 0 && (
+                    <Text style={styles.sigLabel}>Client</Text>
+                    {right.length > 0 ? (
+                      right.map((l, idx) => (
+                        <Text key={idx} style={styles.sigLine}>
+                          {l}
+                        </Text>
+                      ))
+                    ) : (
                       <>
-                        <Text style={styles.sigLabel}>Client</Text>
-                        <Text style={styles.sigBlank}>Signature: ______________________</Text>
-                        <Text style={styles.sigBlank}>Date: __________________________</Text>
+                        <Text style={styles.sigBlank}>
+                          Signature: ______________________
+                        </Text>
+                        <Text style={styles.sigBlank}>
+                          Date: __________________________
+                        </Text>
                       </>
                     )}
                   </View>
@@ -254,7 +263,6 @@ function AgreementDocument({ html }: { html: string }) {
             );
           }
 
-          // paragraph
           return (
             <Text key={i} style={styles.paragraph}>
               {b.content}

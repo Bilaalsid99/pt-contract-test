@@ -44,16 +44,21 @@ export function renderAgreementHtml(
         font-size: 10.5pt;
         margin: 0 0 14px 0;
       }
+
       .redacted {
         background: #f6f6f6;
         border: 1px dashed #cfcfcf;
         padding: 10px 12px;
         border-radius: 8px;
         color: #333;
-        margin: 8px 0 10px 0;
+        margin: 8px 0 6px 0;
       }
-      .redacted strong { display: block; margin-bottom: 6px; }
-      .muted { color: #666; font-size: 10.5pt; }
+
+      .muted {
+        color: #666;
+        font-size: 10.5pt;
+        margin-bottom: 10px;
+      }
     </style>
   </head>
   <body>
@@ -80,13 +85,9 @@ export function renderAgreementHtml(
 
 /**
  * Redacts the most copyable/high-value legal sections.
- *
- * This is intentionally heuristic and based on your current section headings.
- * If you rename headings later, update these patterns.
+ * Uses <p> tags instead of <div> so the PDF parser can read them.
  */
 function redactForPreview(fullBodyHtml: string): string {
-  // Replace entire sections by heading text.
-  // We assume your assembleAgreementBody creates <h2>...</h2> sections in order.
   const sectionsToRedact = [
     /<h2>\s*3\.\s*Fees\s*&\s*Payment\s*<\/h2>[\s\S]*?(?=<h2>|$)/i,
     /<h2>\s*4\.\s*Cancellation\s*&\s*Rescheduling\s*<\/h2>[\s\S]*?(?=<h2>|$)/i,
@@ -97,25 +98,16 @@ function redactForPreview(fullBodyHtml: string): string {
 
   for (const re of sectionsToRedact) {
     out = out.replace(re, (match) => {
-      // Extract the heading line so we keep section structure.
       const headingMatch = match.match(/<h2>[\s\S]*?<\/h2>/i);
       const heading = headingMatch ? headingMatch[0] : "<h2>Section</h2>";
 
       return `
-        ${heading}
-        <div class="redacted">
-          <strong>Full clause hidden in preview</strong>
-          <div class="muted">
-            Unlock the full pack to download the complete legal wording for this section.
-          </div>
-        </div>
-      `.trim();
+${heading}
+<p class="redacted"><strong>Full clause hidden in preview</strong></p>
+<p class="muted">Unlock the full pack to download the complete legal wording for this section.</p>
+`.trim();
     });
   }
-
-  // Optional: redact signatures text but keep signature lines visible.
-  // If your signatures section is only lines, keep it as-is.
-  // If you later add liability/legal signature wording, you can redact similarly.
 
   return out;
 }
