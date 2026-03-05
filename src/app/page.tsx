@@ -228,22 +228,27 @@ export default function Page() {
             Related documents:
           </div>
           <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <a href="/templates/personal-trainer-par-q-form-uk" className="underline underline-offset-4">
-                PAR-Q Form Template UK
-              </a>
-            </li>
-            <li>
-              <a href="/templates/personal-trainer-waiver-form-uk" className="underline underline-offset-4">
-                Personal Trainer Waiver Template UK
-              </a>
-            </li>
-            <li>
-              <a href="/templates/personal-trainer-terms-and-conditions-uk" className="underline underline-offset-4">
-                Personal Trainer Terms and Conditions Template UK
-              </a>
-            </li>
-          </ul>
+  <li>
+    <a href="/templates/personal-trainer-par-q-form-uk" className="underline underline-offset-4">
+      PAR-Q Form Template UK
+    </a>
+  </li>
+  <li>
+    <a href="/templates/personal-trainer-waiver-form-uk" className="underline underline-offset-4">
+      Personal Trainer Waiver Template UK
+    </a>
+  </li>
+  <li>
+    <a href="/templates/personal-trainer-terms-and-conditions-uk" className="underline underline-offset-4">
+      Personal Trainer Terms and Conditions Template UK
+    </a>
+  </li>
+  <li>
+    <a href="/templates" className="underline underline-offset-4">
+      View all personal trainer templates
+    </a>
+  </li>
+</ul>
         </footer>
       </div>
     </main>
