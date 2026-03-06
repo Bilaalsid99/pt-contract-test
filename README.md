@@ -1,36 +1,118 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PT Contract Test
 
-## Getting Started
+This repository is a sandbox project used to test the checkout and agreement generation flow for a personal trainer client onboarding pack.
 
-First, run the development server:
+The project focuses on validating:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+* Stripe checkout flow
+* Agreement generation
+* Webhook verification
+* Email and fulfillment logic
+
+This is **not the final product structure**, but a technical sandbox used to review the payment implementation.
+
+---
+
+## Local Setup
+
+Clone the repository:
+
+```
+git clone https://github.com/Bilaalsid99/pt-contract-test.git
+cd pt-contract-test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Install dependencies:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+npm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+Create a local environment file from the template:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+cp .env.example .env.local
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Then add your Stripe **sandbox keys** from the Stripe dashboard.
 
-## Deploy on Vercel
+Example:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Environment variables are not committed to the repository.
+
+---
+
+## Running the Project
+
+Start the development server:
+
+```
+npm run dev
+```
+
+Open:
+
+```
+http://localhost:3000
+```
+
+---
+
+## Testing Checkout
+
+Use Stripe test card details:
+
+```
+Card: 4242 4242 4242 4242
+Expiry: Any future date
+CVC: Any
+Postcode: Any
+```
+
+---
+
+## Project Structure
+
+Key areas for checkout review:
+
+```
+src/app/api/checkout/route.ts
+src/app/api/webhook/route.ts
+src/lib/stripe/
+src/lib/fulfillment/
+src/lib/email/
+```
+
+Main flow:
+
+1. Agreement form submission
+2. Stripe checkout session creation
+3. Stripe webhook verification
+4. Agreement generation
+5. Email and fulfillment
+
+---
+
+## Tech Stack
+
+* Next.js
+* TypeScript
+* Stripe
+* Vercel deployment
+
+---
+
+## Notes
+
+This repository is used to validate the checkout and fulfillment system before integrating it into the larger ContractForge structure.
