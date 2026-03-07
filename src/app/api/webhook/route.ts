@@ -10,7 +10,6 @@ import { assertDraftId } from "@/lib/storage/draftId";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  console.log("DEPLOY_SHA", process.env.VERCEL_GIT_COMMIT_SHA);
 
   const sig = req.headers.get("stripe-signature");
   if (!sig) {
